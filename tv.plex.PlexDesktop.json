@@ -1,0 +1,181 @@
+{
+  "app-id": "tv.plex.PlexDesktop",
+  "runtime": "org.kde.Platform",
+  "runtime-version": "5.15-21.08",
+  "sdk": "org.kde.Sdk",
+  "base": "io.qt.qtwebengine.BaseApp",
+  "base-version": "5.15-21.08",
+  "command": "/app/bin/start.sh",
+  "finish-args": [
+    "--socket=x11",
+    "--socket=wayland",
+    "--socket=pulseaudio",
+    "--share=ipc",
+    "--share=network",
+    "--device=dri",
+    "--device=all",
+    "--filesystem=xdg-videos:ro",
+    "--filesystem=xdg-music:ro",
+    "--filesystem=xdg-pictures:ro",
+    "--talk-name=org.freedesktop.PowerManagement",
+    "--talk-name=org.freedesktop.ScreenSaver",
+    "--system-talk-name=org.freedesktop.login1"
+  ],
+  "build-options": {
+    "strip": true
+  },
+  "modules": [
+    "modules/io.mpv.Mpv.yml",
+    {
+      "name": "squashfs-tools",
+      "modules": [
+        {
+          "name": "lzo",
+          "sources": [
+            {
+              "type": "archive",
+              "url": "https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz",
+              "sha256": "c0f892943208266f9b6543b3ae308fab6284c5c90e627931446fb49b4221a072"
+            }
+          ],
+          "buildsystem": "autotools"
+        }
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/plougher/squashfs-tools.git",
+          "branch": "master"
+        }
+      ],
+      "buildsystem": "simple",
+      "build-commands": [
+        "make -C squashfs-tools GZIP_SUPPORT=1 XZ_SUPPORT=1 LZO_SUPPORT=1 LZMA_XZ_SUPPORT=1 LZ4_SUPPORT=1 ZSTD_SUPPORT=1 XATTR_SUPPORT=1",
+        "install -D squashfs-tools/unsquashfs /app/bin/unsquashfs"
+      ]
+    },
+    {
+      "name": "libbsd",
+      "modules": [
+        {
+          "name": "libmd",
+          "sources": [
+            {
+              "type": "git",
+              "url": "https://gitlab.freedesktop.org/libbsd/libmd.git",
+              "branch": "main"
+            }
+          ],
+          "buildsystem": "autotools"
+        }
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://gitlab.freedesktop.org/libbsd/libbsd.git",
+          "branch": "main"
+        }
+      ],
+      "buildsystem": "autotools"
+    },
+    {
+      "name": "libtirpc",
+      "sources": [
+        {
+          "type": "file",
+          "url": "https://archlinux.org/packages/core/x86_64/libtirpc/download",
+          "dest-filename": "xyz.tar.zst",
+          "sha256": "1182ef8c204658c4d97d431c9950da72bacd24f45ad0315131a1e48e8a09ea2a"
+        }
+      ],
+      "buildsystem": "simple",
+      "build-commands": [
+        "tar -xf xyz.tar.zst --strip-components=1 -C /app usr/include usr/lib"
+      ]
+    },
+    {
+      "name": "libnsl",
+      "sources": [
+        {
+          "type": "file",
+          "url": "https://archlinux.org/packages/core/x86_64/libnsl/download",
+          "dest-filename": "xyz.tar.zst",
+          "sha256": "14984c1f7a8265266439e374956532b3727eead8118d48dd9c91d542642c67c8"
+        }
+      ],
+      "buildsystem": "simple",
+      "build-commands": [
+        "tar -xf xyz.tar.zst --strip-components=1 -C /app usr/include usr/lib"
+      ]
+    },
+    {
+      "name": "libwrap",
+      "sources": [
+        {
+          "type": "file",
+          "url": "https://archlinux.org/packages/community/x86_64/libwrap/download",
+          "dest-filename": "xyz.tar.zst",
+          "sha256": "4cbb83d8add5a3b1b02b24f69c8c618a34c37541d096be403ce8bc55c3f447bf"
+        }
+      ],
+      "buildsystem": "simple",
+      "build-commands": [
+        "tar -xf xyz.tar.zst --strip-components=1 -C /app usr/include usr/lib"
+      ]
+    },
+    {
+      "name": "apparmor",
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://gitlab.com/apparmor/apparmor.git",
+          "branch": "master"
+        }
+      ],
+      "buildsystem": "simple",
+      "build-commands": [
+        "cd libraries/libapparmor && sh autogen.sh",
+        "cd libraries/libapparmor && sh ./configure --prefix=/app",
+        "cd libraries/libapparmor && make",
+        "cd libraries/libapparmor && make install"
+      ]
+    },
+    {
+      "name": "plex-desktop",
+      "buildsystem": "simple",
+      "build-commands": [
+        "unsquashfs -q -f -d /app/plex-desktop plex-desktop.snap"
+      ],
+      "post-install": [
+        "install -Dm755 start.sh /app/bin/start.sh",
+        "install -Dm644 tv.plex.PlexDesktop.desktop ${FLATPAK_DEST}/share/applications/tv.plex.PlexDesktop.desktop",
+        "install -Dm644 tv.plex.PlexDesktop.png ${FLATPAK_DEST}/share/icons/tv.plex.PlexDesktop.png",
+        "install -Dm644 tv.plex.PlexDesktop.appdata.xml ${FLATPAK_DEST}/share/metainfo/tv.plex.PlexDesktop.appdata.xml"
+      ],
+      "sources": [
+        {
+          "type": "file",
+          "url": "https://api.snapcraft.io/api/v1/snaps/download/qc6MFRM433ZhI1XjVzErdHivhSOhlpf0_8.snap",
+          "dest-filename": "plex-desktop.snap",
+          "sha256": "4ea3a45880ce57ae57323adc5b3ec2f3ae0647bf8b4ce131174e0a80ea2cf35b"
+        },
+        {
+          "type": "file",
+          "path": "start.sh"
+        },
+        {
+          "type": "file",
+          "path": "tv.plex.PlexDesktop.desktop"
+        },
+        {
+          "type": "file",
+          "path": "tv.plex.PlexDesktop.png"
+        },
+        {
+          "type": "file",
+          "path": "tv.plex.PlexDesktop.appdata.xml"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Plex
+Comment=
+Exec=/app/bin/start.sh
+Icon=tv.plex.PlexDesktop
+Terminal=false
+Categories=Audio;Music;Video;Player;Media;
